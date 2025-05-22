@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enhanced Timer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      transition: background-color 0.5s, color 0.5s;
+    }
+    #timer {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    button, input, select {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 18px;
+    }
+    input[type="number"] {
+      width: 80px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="timer">00:00:00</div>
+
+  <button onclick="toggleTimer()">Start/Pause (Space)</button>
+  <button onclick="resetTimer()">Reset</button>
+
+  <br><br>
+
+  <input type="number" id="minuteInput" placeholder="Minutes" />
+  <input type="number" id="secondInput" placeholder="Seconds" />
+  <button onclick="modifyTime()">Add/Subtract Time</button>
+
+  <br><br>
+
+  <button onclick="addTenSeconds()">+10 sec (→)</button>
+  <button onclick="subtractTenSeconds()">-10 sec (←)</button>
+
+  <br><br>
+
+  <label for="fontSize">Font Size:</label>
+  <select id="fontSize" onchange="changeFontSize()">
+    <option value="48px">Normal</option>
+    <option value="64px">Large</option>
+    <option value="80px">Extra Large</option>
+  </select>
+
+  <br><br>
+
+  <label for="bgColor">Background Color:</label>
+  <input type="color" id="bgColor" onchange="changeBackgroundColor()">
+
+  <label for="textColor">Text Color:</label>
+  <input type="color" id="textColor" onchange="changeTextColor()">
+
+  <script>
+    let timerDisplay = document.getElementById('timer');
+    let seconds = 0;
+    let interval = null;
+
+    function updateDisplay() {
+      let hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      let mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      let secs = String(seconds % 60).padStart(2, '0');
+      timerDisplay.textContent = `${hrs}:${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      if (interval) return;
+      interval = setInterval(() => {
+        seconds++;
+        updateDisplay();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(interval);
+      interval = null;
+    }
+
+    function toggleTimer() {
+      if (interval) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      seconds = 0;
+      updateDisplay();
+    }
+
+    function modifyTime() {
+      let minuteVal = parseInt(document.getElementById('minuteInput').value, 10);
+      let secondVal = parseInt(document.getElementById('secondInput').value, 10);
+      let delta = 0;
+
+      if (!isNaN(minuteVal)) {
+        delta += minuteVal * 60;
+      }
+      if (!isNaN(secondVal)) {
+        delta += secondVal;
+      }
+
+      seconds += delta;
+      if (seconds < 0) seconds = 0;
+      updateDisplay();
+
+      document.getElementById('minuteInput').value = '';
+      document.getElementById('secondInput').value = '';
+    }
+
+    function addTenSeconds() {
+      seconds += 10;
+      updateDisplay();
+    }
+
+    function subtractTenSeconds() {
+      seconds = Math.max(0, seconds - 10);
+      updateDisplay();
+    }
+
+    function changeFontSize() {
+      let size = document.getElementById('fontSize').value;
+      timerDisplay.style.fontSize = size;
+      localStorage.setItem('fontSize', size);
+    }
+
+    function changeBackgroundColor() {
+      let color = document.getElementById('bgColor').value;
+      document.body.style.backgroundColor = color;
+      localStorage.setItem('backgroundColor', color);
+    }
+
+    function changeTextColor() {
+      let color = document.getElementById('textColor').value;
+      document.body.style.color = color;
+      localStorage.setItem('textColor', color);
+    }
+
+    function loadSettings() {
+      let fontSize = localStorage.getItem('fontSize');
+      let backgroundColor = localStorage.getItem('backgroundColor');
+      let textColor = localStorage.getItem('textColor');
+
+      if (fontSize) {
+        timerDisplay.style.fontSize = fontSize;
+        document.getElementById('fontSize').value = fontSize;
+      }
+      if (backgroundColor) {
+        document.body.style.backgroundColor = backgroundColor;
+        document.getElementById('bgColor').value = backgroundColor;
+      }
+      if (textColor) {
+        document.body.style.color = textColor;
+        document.getElementById('textColor').value = textColor;
+      }
+    }
+
+    // Initialize settings
+    loadSettings();
+
+    // Listen for Enter key in both inputs
+    document.getElementById('minuteInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        modifyTime();
+      }
+    });
+    document.getElementById('secondInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        modifyTime();
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(event) {
+      if (event.code === 'Space') {
+        event.preventDefault(); // Prevent scrolling
+        toggleTimer();
+      } else if (event.key === 'ArrowRight') {
+        addTenSeconds();
+      } else if (event.key === 'ArrowLeft') {
+        subtractTenSeconds();
+      }
+    });
+  </script>
+
+</body>
+</html>
